@@ -225,20 +225,21 @@ def get_region_mask(image, param):
 def get_mask(image, param):
     region_mask = get_region_mask(image, param)
     color_mask = get_color_mask(image, param)   
-
+    mask = region_mask & color_mask
+   
     if param.debug_mode:
         print('color_mask')
         plt.imshow(color_mask)
         plt.show()
         
-        print('region_mask)
+        print('region_mask')
         plt.imshow(region_mask)
         plt.show()
     
         print('mask')
         plt.imshow(mask)
         plt.show()
-    mask = region_mask & color_mask
+    
     return mask
 
 
@@ -397,7 +398,7 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
     for image_name in image_list:
      
         # show_image=True means just debug for the given image
-        if show_image and image_name != debug_image_name:
+        if debug_mode and image_name != debug_image_name:
            continue
          
         print(image_name)
@@ -410,7 +411,7 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
         # get lane lines
         with_line_image, line_image, edge_image, masked_edge_image = lane_find(I, param, mode)
         
-        if show_image:
+        if debug_mode:
             plt.imshow(I)
             plt.show()
 
