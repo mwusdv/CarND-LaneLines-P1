@@ -19,6 +19,10 @@ import matplotlib.image as mpimg
 import numpy as np
 import cv2
 import os
+
+
+from sklearn.linear_model import RANSACRegressor
+
 #%matplotlib inline
 
 import math
@@ -132,8 +136,6 @@ class LaneDetectParam:
         self.canny_low_threshold = canny_low_threshold
         self.canny_high_threshold = canny_high_threshold
       
-       
-      
         # for hough tranform
         self.rho = rho
         self.theta = theta
@@ -206,42 +208,8 @@ def get_mask(image, param):
     return mask
 
 
-# get the two end points of a line for drawing
-def get_end_points(img, line):
-    slope, interception = line
-    row = img.shape[0]
-    col = img.shape[1]
-    y1 = row-1
-    y2 = int(row * 0.6)
-    
-    x1 = int((y1 - interception)/slope)
-    x2 = int((y2 - interception)/slope)
-    
-    return x1, y1, x2, y2
-
-def expand_lines(lines):
-    points = []
-    for line in lines:
-        x1, y1, x2, y2 = line.reshape(4)
-        points.append([x1, y1])
-        points.append([x2, y2])
-    
-    expanded_lines = []
-    N = len(points)    
-    for m in range(N-1):
-        x1, y1 = points[m]
-     
-        for n in range(m+1, N):
-            x2, y2 = points[n]
-            expanded_lines.append(np.array([[x1, y1, x2, y2]]))
-            
-    return np.array(expanded_lines)
-
-def get_left_right_lines(lines, image):
-    col = image.shape[1]
-    lb = col/3
-    rb = col-lb
-    
+# group all the line segments into two groups: left and right
+def get_left_right_lines(lines):
     left_lines = []
     right_lines = []
     for line in lines:
@@ -251,65 +219,62 @@ def get_left_right_lines(lines, image):
         param = np.polyfit((x1, x2), (y1, y2), 1)
    
         slope = param[0]
-        if slope < 0 and x1 < rb and x2 < rb:
+        if slope < 0:
             left_lines.append(line)
-        elif slope > 0 and x1 > lb and x2 > lb:
+        elif slope > 0:
             right_lines.append(line)
             
     return np.array(left_lines), np.array(right_lines)
-                
-def get_average_line(lines, slb, sub):
-    # expand point pairs
-    expanded_lines = expand_lines(lines)
-    
-    # get slopes and interceptions
-    slope_intercepts = []
-    for line in expanded_lines:
+               
+# fit one line based on the input line segments
+def fit_one_line(lines):
+    X = []
+    Y = []
+    for line in lines:
         x1, y1, x2, y2 = line.reshape(4)
-        if x1 == x2:
-            continue
-        param = np.polyfit((x1, x2), (y1, y2), 1)
-      
-        slope = param[0]
-        if slope > sub or slope < slb:
-            continue
+        X.append(x1)
+        X.append(x2)
+        Y.append(y1)
+        Y.append(y2)
         
-        interception = param[1]
+    X = np.array(X).reshape(-1, 1)
+    Y = np.array(Y).reshape(-1, 1)
+    ransac = RANSACRegressor()
+    model = ransac.fit(X, Y)
+    
+    return np.array([model.estimator_.coef_, model.estimator_.intercept_])
         
-        slope_intercepts.append(np.array([slope, interception]))
-    slope_intercepts = np.array(slope_intercepts)
+# draw the given line into the given image
+def draw_one_line(image, line, param):
+    slope, intercept = line
+    row, col = image.shape[:2]
     
-    # robust mean
-    N = len(slope_intercepts)
-    tail = max(2, int(N*0.2))
+    # y coordinates 
+    y1 = row-1
+    y2 = row - int(row * param.ir_row_ratio)
     
-    slopes = np.sort(slope_intercepts[:,0])
-    intercepts = np.sort(slope_intercepts[:,1])
+    # compute x coordinates
+    x1 = int((y1 - intercept)/slope)
+    x2 = int((y2 - intercept)/slope)
     
-    slope_ub = slopes[-tail]
-    slope_lb = slopes[tail-1]
-    intercept_ub = intercepts[-tail]
-    intercept_lb = intercepts[tail-1]
-    
-    robust_lines = [line for line in slope_intercepts if line[0] > slope_lb and line[0] < slope_ub \
-                    and line[1] > intercept_lb and line[1] < intercept_ub]
-    return np.mean(robust_lines, axis=0)
+    # having obtained to points, draw the line
+    cv2.line(image, (x1, y1), (x2, y2), param.line_color, param.line_thickness)
 
-        
-def draw_average_lines(img, lines, param):
-    left_lines, right_lines = get_left_right_lines(lines, img)
+
+# given detected houg lines, draw full extent lane lines
+def draw_full_lanes(line_image, lines, param):
+    # group all the line segments into two groups: left and right
+    left_lines, right_lines = get_left_right_lines(lines)
     
-    left_line = get_average_line(left_lines, -10000, -0.2)
-    right_line = get_average_line(right_lines, 0.2, 10000)
+    # fit one line for each group
+    left_line = fit_one_line(left_lines)
+    right_line = fit_one_line(right_lines)
     
-    xl1, yl1, xl2, yl2 = get_end_points(img, left_line)
-    xr1, yr1, xr2, yr2 = get_end_points(img, right_line)
+    # draw the lane lines
+    draw_one_line(line_image, left_line, param)
+    draw_one_line(line_image, right_line, param)
     
-    line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-    cv2.line(line_img, (xl1, yl1), (xl2, yl2), param.line_color, param.line_thickness)
-    cv2.line(line_img, (xr1, yr1), (xr2, yr2), param.line_color, param.line_thickness)
-   
-    return line_img
+    return line_image
    
 # given the output of a Canny transform, 
 # return an image with hough lines drawn
@@ -317,22 +282,23 @@ def hough_lines(edge_image, param):
     lines = cv2.HoughLinesP(edge_image, param.rho, param.theta, param.min_vote, np.array([]), param.min_line_len, param.max_line_gap)
     line_img = np.zeros((edge_image.shape[0], edge_image.shape[1], 3), dtype=np.uint8)
     draw_lines(line_img, lines, param.line_color, param.line_thickness)
+    
     return line_img
 
 # given the output of a Canny transform, 
 # return an image with full extent lanes
 def hough_full_lines(edge_image, param):
     lines = cv2.HoughLinesP(edge_image, param.rho, param.theta, param.min_vote, np.array([]), param.min_line_len, param.max_line_gap)
-    line_img = np.zeros((edge_image.shape[0], edge_image.shape[1], 3), dtype=np.uint8)
-    line_img = draw_average_lines(line_img, lines)
+    line_image = np.zeros((edge_image.shape[0], edge_image.shape[1], 3), dtype=np.uint8)
+    line_image = draw_full_lanes(line_image, lines, param)
 
-    return line_img
+    return line_image
 
 
 # lane find pipeline
 # mode 0: find lane line segments
 # mode 1: find full extent of the lanes
-def lane_find(image, param, mode, color=[255, 0, 0], thickness=10):
+def lane_find(image, param, mode):
     gray_img = grayscale(image)
     
     # edge detection
@@ -370,6 +336,10 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
     # parameter
     param = LaneDetectParam()
     
+    # make sure the output path exists
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    
     # detect lanes in the images in the input path
     image_list = os.listdir(input_path)
     for image_name in image_list:
@@ -403,5 +373,5 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
         
 if __name__ == '__main__':
     #test_lane_find('frames', 'frames_output', mode=0, show_image=True, debug_image_name='frame_0.jpg')
-    test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteCurve.jpg')
+    test_lane_find('test_images', 'test_images_full_line_output', mode=1, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
