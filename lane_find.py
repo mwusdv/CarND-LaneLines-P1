@@ -119,11 +119,11 @@ class LaneDetectParam:
         self.debug_mode = False
         
         # for color detection
-        self.white_rgb_threshold = np.array([90, 90, 90])
-        self.yellow_hsv_lb = np.array([15, 100, 100])
+        self.yellow_hsv_lb = np.array([15, 100, 200])
         self.yellow_hsv_ub = np.array([40, 255, 255])
         
-        self.white_hsv_lb = np.array([0, 0, 180])
+        self.white_rgb_threshold = np.array([200, 200, 200])
+        self.white_hsv_lb = np.array([0, 0, 200])
         self.white_hsv_ub = np.array([255, 255, 255])
         
         # for interest region
@@ -182,11 +182,11 @@ def get_color_mask(image, param):
     mask = mask_white | mask_yellow
     
     if param.debug_mode:
-        print('mask_white')
+        print('mask white')
         plt.imshow(mask_white)
         plt.show()
         
-        print('mask_yellow')
+        print('mask yellow')
         plt.imshow(mask_yellow)
         plt.show()
         
@@ -228,11 +228,11 @@ def get_mask(image, param):
     mask = region_mask & color_mask
    
     if param.debug_mode:
-        print('color_mask')
+        print('color mask')
         plt.imshow(color_mask)
         plt.show()
         
-        print('region_mask')
+        print('region mask')
         plt.imshow(region_mask)
         plt.show()
     
@@ -301,13 +301,13 @@ def draw_full_lanes(line_image, lines, param):
     # group all the line segments into two groups: left and right
     left_lines, right_lines = get_left_right_lines(lines, param)
     if param.debug_mode:
-        print('left_lines')
+        print('left lines')
         tmp_left_img = np.copy(line_image)
         draw_lines(tmp_left_img, left_lines, param.line_color, param.line_thickness)
         plt.imshow(tmp_left_img)
         plt.show()
        
-        print('right_lines')
+        print('right lines')
         tmp_right_img = np.copy(line_image)
         draw_lines(tmp_right_img, right_lines, param.line_color, param.line_thickness)
         plt.imshow(tmp_right_img)
@@ -359,6 +359,14 @@ def lane_find(image, param, mode):
     mask = get_mask(image, param)
     masked_edge_image = edge_image & mask
     
+    if param.debug_mode:
+        print('edge image')
+        plt.imshow(edge_image)
+        plt.show()
+        
+        print('masked edge image')
+        plt.imshow(masked_edge_image)
+        plt.show()
     # find lane lines
     if mode == 0:
         line_image = hough_lines(masked_edge_image, param)
@@ -403,6 +411,9 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
          
         print(image_name)
         I = mpimg.imread(os.path.join(input_path, image_name))
+        if debug_mode:
+            plt.imshow(I)
+            plt.show()
         
         # parameter
         param = LaneDetectParam()
@@ -433,5 +444,5 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
 if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, debug_mode=True, debug_image_name='frame_8.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, debug_mode=True, debug_image_name='frame_19.jpg')
     
