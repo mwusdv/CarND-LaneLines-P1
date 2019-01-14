@@ -145,8 +145,8 @@ class LaneDetectParam:
         
         # left and right lane lines
         self.left_slope_lb = -10000
-        self.left_slope_ub = -0.3
-        self.right_slope_lb = 0.3
+        self.left_slope_ub = -0.35
+        self.right_slope_lb = 0.35
         self.right_slope_ub = 10000
         
         # for line drawing
@@ -277,6 +277,9 @@ def draw_full_lanes(line_image, lines, param):
     # group all the line segments into two groups: left and right
     left_lines, right_lines = get_left_right_lines(lines, param)
     
+    if len(left_lines) == 0 or len(right_lines) == 0:
+        return None
+    
     # fit one line for each group
     left_line = fit_one_line(left_lines)
     right_line = fit_one_line(right_lines)
@@ -325,6 +328,11 @@ def lane_find(image, param, mode):
         line_image = hough_lines(masked_edge_image, param)
     else:
         line_image = hough_full_lines(masked_edge_image, param)
+        if line_image is None:
+            param.white_hsv_lb = np.array([0, 0, 0])
+            mask = get_mask(image, param)
+            masked_edge_image = edge_image & mask
+            line_image = hough_full_lines(masked_edge_image, param)
     
     # combine with the input image
     with_line_image = weighted_img(line_image, image)
@@ -344,8 +352,6 @@ def save_frames():
 
 # test lane find
 def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_image_name=''):
-    # parameter
-    param = LaneDetectParam()
     
     # make sure the output path exists
     if not os.path.exists(output_path):
@@ -361,6 +367,11 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
          
         print(image_name)
         I = mpimg.imread(os.path.join(input_path, image_name))
+        
+        # parameter
+        param = LaneDetectParam()
+        
+        # get lane lines
         with_line_image, line_image, edge_image, masked_edge_image = lane_find(I, param, mode)
         
         if show_image:
@@ -385,5 +396,5 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
 if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, show_image=True, debug_image_name='frame_19.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, show_image=False, debug_image_name='frame_8.jpg')
     
