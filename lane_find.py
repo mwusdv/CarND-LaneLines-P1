@@ -141,8 +141,8 @@ class LaneDetectParam:
         # for hough tranform
         self.rho = 1
         self.theta = np.pi/180
-        self.min_vote = 5
-        self.min_line_len = 5
+        self.min_vote = 3
+        self.min_line_len = 3
         self.max_line_gap = 1
         
         # left and right lane lines
@@ -388,12 +388,12 @@ def lane_find(image, param, mode):
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 def save_frames():
-    T1 = 0
-    T2 = 4
-    N = 40
+    T1 = 4
+    T2 = 6
+    N = (T2-T1)*10
     clip1 = VideoFileClip("test_videos/challenge.mp4").subclip(T1, T2)
     for t in range(N):
-        clip1.save_frame('tmpvideos/frame_' + str(t) + '.jpg', t=(T2-T1)*t/N)
+        clip1.save_frame('frames/frame_' + str(t) + '.jpg', t=(T2-T1)*t/N)
 
 
 # test lane find
@@ -446,5 +446,5 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
 if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, debug_mode=False, debug_image_name='frame_19.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, debug_mode=False, debug_image_name='frame_4.jpg')
     
