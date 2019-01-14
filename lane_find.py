@@ -115,37 +115,34 @@ def weighted_img(img, initial_img, α=0.8, β=1., γ=0.):
 # all the parameters needed in the whole 
 # lane detection pipeline
 class LaneDetectParam:
-    def __init__(self, ir_row_ratio=0.4, ir_upper_col_ratio = 0.05, ir_lower_col_ratio=1, \
-                 kernel_size=5, canny_low_threshold=50, canny_high_threshold=150, \
-                 rho=1, theta=np.pi/180, min_vote=5, min_line_len=5, max_line_gap=2, \
-                 line_color = [255, 0, 0], line_thickness = 10):
+    def __init__(self):
         # for color detection
-        self.white_rgb_threshold = [90, 90, 90]
+        self.white_rgb_threshold = np.array([90, 90, 90])
         self.yellow_hsv_lb = np.array([15, 100, 100])
         self.yellow_hsv_ub = np.array([40, 255, 255])
         
         # for interest region
-        self.ir_row_ratio = ir_row_ratio
-        self.ir_upper_col_ratio = ir_upper_col_ratio
-        self.ir_lower_col_ratio = ir_lower_col_ratio
+        self.ir_row_ratio = 0.4
+        self.ir_upper_col_ratio = 0.05
+        self.ir_lower_col_ratio = 1.0
         
         # for Gaussian smoothing
-        self.kernel_size = kernel_size
+        self.kernel_size = 5
         
         # for canny edge detection
-        self.canny_low_threshold = canny_low_threshold
-        self.canny_high_threshold = canny_high_threshold
+        self.canny_low_threshold = 50
+        self.canny_high_threshold = 150
       
         # for hough tranform
-        self.rho = rho
-        self.theta = theta
-        self.min_vote = min_vote
-        self.min_line_len = min_line_len
-        self.max_line_gap = max_line_gap
+        self.rho = 1
+        self.theta = np.pi/180
+        self.min_vote = 5
+        self.min_line_len = 5
+        self.max_line_gap = 1
         
         # for line drawing
-        self.line_color = line_color
-        self.line_thickness = line_thickness
+        self.line_color = [255, 0, 0]
+        self.line_thickness = 10
         
 # detect white areas
 def detect_white(image, param):
