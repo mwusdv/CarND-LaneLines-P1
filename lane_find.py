@@ -116,6 +116,8 @@ def weighted_img(img, initial_img, α=0.8, β=1., γ=0.):
 # lane detection pipeline
 class LaneDetectParam:
     def __init__(self):
+        self.debug_mode = False
+        
         # for color detection
         self.white_rgb_threshold = np.array([90, 90, 90])
         self.yellow_hsv_lb = np.array([15, 100, 100])
@@ -179,6 +181,15 @@ def get_color_mask(image, param):
     mask_yellow = detect_yellow(image, param)
     mask = mask_white | mask_yellow
     
+    if param.debug_mode:
+        print('mask_white')
+        plt.imshow(mask_white)
+        plt.show()
+        
+        print('mask_yellow')
+        plt.imshow(mask_yellow)
+        plt.show()
+        
     return mask
 
 # vertices of the interest region
@@ -215,6 +226,18 @@ def get_mask(image, param):
     region_mask = get_region_mask(image, param)
     color_mask = get_color_mask(image, param)   
 
+    if param.debug_mode:
+        print('color_mask')
+        plt.imshow(color_mask)
+        plt.show()
+        
+        print('region_mask)
+        plt.imshow(region_mask)
+        plt.show()
+    
+        print('mask')
+        plt.imshow(mask)
+        plt.show()
     mask = region_mask & color_mask
     return mask
 
@@ -276,6 +299,7 @@ def draw_one_line(image, line, param):
 def draw_full_lanes(line_image, lines, param):
     # group all the line segments into two groups: left and right
     left_lines, right_lines = get_left_right_lines(lines, param)
+    
     
     if len(left_lines) == 0 or len(right_lines) == 0:
         return None
@@ -351,7 +375,7 @@ def save_frames():
 
 
 # test lane find
-def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_image_name=''):
+def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_image_name=''):
     
     # make sure the output path exists
     if not os.path.exists(output_path):
@@ -370,6 +394,7 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
         
         # parameter
         param = LaneDetectParam()
+        param.debug_mode = debug_mode
         
         # get lane lines
         with_line_image, line_image, edge_image, masked_edge_image = lane_find(I, param, mode)
@@ -396,5 +421,5 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
 if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, show_image=False, debug_image_name='frame_8.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, debug_mode=True, debug_image_name='frame_8.jpg')
     
