@@ -140,6 +140,12 @@ class LaneDetectParam:
         self.min_line_len = 5
         self.max_line_gap = 1
         
+        # left and right lane lines
+        self.left_slope_lb = -10000
+        self.left_slope_ub = -0.3
+        self.right_slope_lb = 0.3
+        self.right_slope_ub = 10000
+        
         # for line drawing
         self.line_color = [255, 0, 0]
         self.line_thickness = 10
@@ -206,19 +212,19 @@ def get_mask(image, param):
 
 
 # group all the line segments into two groups: left and right
-def get_left_right_lines(lines):
+def get_left_right_lines(lines, param):
     left_lines = []
     right_lines = []
     for line in lines:
         x1, y1, x2, y2 = line.reshape(4)
         if x1 == x2:
             continue
-        param = np.polyfit((x1, x2), (y1, y2), 1)
+        line_param = np.polyfit((x1, x2), (y1, y2), 1)
    
-        slope = param[0]
-        if slope < 0:
+        slope = line_param[0]
+        if slope > param.left_slope_lb and slope < param.left_slope_ub:
             left_lines.append(line)
-        elif slope > 0:
+        elif slope > param.right_slope_lb and slope < param.right_slope_ub:
             right_lines.append(line)
             
     return np.array(left_lines), np.array(right_lines)
@@ -261,7 +267,7 @@ def draw_one_line(image, line, param):
 # given detected houg lines, draw full extent lane lines
 def draw_full_lanes(line_image, lines, param):
     # group all the line segments into two groups: left and right
-    left_lines, right_lines = get_left_right_lines(lines)
+    left_lines, right_lines = get_left_right_lines(lines, param)
     
     # fit one line for each group
     left_line = fit_one_line(left_lines)
