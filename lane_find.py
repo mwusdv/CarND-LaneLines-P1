@@ -299,7 +299,18 @@ def draw_one_line(image, line, param):
 def draw_full_lanes(line_image, lines, param):
     # group all the line segments into two groups: left and right
     left_lines, right_lines = get_left_right_lines(lines, param)
-    
+    if param.debug_mode:
+        print('left_lines')
+        tmp_left_img = np.copy(line_image)
+        draw_lines(tmp_left_img, left_lines, param.line_color, param.line_thickness)
+        plt.imshow(tmp_left_img)
+        plt.show()
+       
+        print('right_lines')
+        tmp_right_img = np.copy(line_image)
+        draw_lines(tmp_right_img, right_lines, param.line_color, param.line_thickness)
+        plt.imshow(tmp_right_img)
+        plt.show()
     
     if len(left_lines) == 0 or len(right_lines) == 0:
         return None
