@@ -121,6 +121,9 @@ class LaneDetectParam:
         self.yellow_hsv_lb = np.array([15, 100, 100])
         self.yellow_hsv_ub = np.array([40, 255, 255])
         
+        self.white_hsv_lb = np.array([0, 0, 180])
+        self.white_hsv_ub = np.array([255, 255, 255])
+        
         # for interest region
         self.ir_row_ratio = 0.4
         self.ir_upper_col_ratio = 0.05
@@ -131,7 +134,7 @@ class LaneDetectParam:
         
         # for canny edge detection
         self.canny_low_threshold = 50
-        self.canny_high_threshold = 150
+        self.canny_high_threshold = 100
       
         # for hough tranform
         self.rho = 1
@@ -152,11 +155,16 @@ class LaneDetectParam:
         
 # detect white areas
 def detect_white(image, param):
-    mask = (image[:,:,0] > param.white_rgb_threshold[0]) \
-         & (image[:,:,1] > param.white_rgb_threshold[1]) \
-         & (image[:,:,2] > param.white_rgb_threshold[2]) \
+    rgb_flag = (image[:,:,0] > param.white_rgb_threshold[0]) \
+             & (image[:,:,1] > param.white_rgb_threshold[1]) \
+             & (image[:,:,2] > param.white_rgb_threshold[2]) 
+    rgb_mask = np.zeros(image.shape[:2], dtype=np.uint8)
+    rgb_mask[rgb_flag] = 255
     
-    return mask
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    hsv_mask = cv2.inRange(hsv, param.white_hsv_lb, param.white_hsv_ub)
+    
+    return rgb_mask & hsv_mask
 
 # detect yellow areas
 def detect_yellow(image, param):
@@ -377,5 +385,5 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
 if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, show_image=False, debug_image_name='frame_0.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, show_image=True, debug_image_name='frame_19.jpg')
     
