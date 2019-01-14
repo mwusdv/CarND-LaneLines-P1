@@ -373,10 +373,12 @@ def lane_find(image, param, mode):
     else:
         line_image = hough_full_lines(masked_edge_image, param)
         if line_image is None:
-            param.white_hsv_lb = np.array([0, 0, 0])
-            mask = get_mask(image, param)
-            masked_edge_image = edge_image & mask
-            line_image = hough_full_lines(masked_edge_image, param)
+            edge_from_mask = canny(mask*255, param.canny_low_threshold, param.canny_high_threshold)
+            if param.debug_mode:
+                print('edge from mask')
+                plt.imshow(edge_from_mask)
+                plt.show()
+            line_image = hough_full_lines(edge_from_mask, param)
     
     # combine with the input image
     with_line_image = weighted_img(line_image, image)
@@ -444,5 +446,5 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
 if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, debug_mode=True, debug_image_name='frame_19.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, debug_mode=False, debug_image_name='frame_19.jpg')
     
