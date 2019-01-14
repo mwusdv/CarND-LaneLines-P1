@@ -372,6 +372,7 @@ def test_lane_find(input_path, output_path, mode=1, show_image=False, debug_imag
         
         
 if __name__ == '__main__':
-    #test_lane_find('frames', 'frames_output', mode=0, show_image=True, debug_image_name='frame_0.jpg')
-    test_lane_find('test_images', 'test_images_full_line_output', mode=1, show_image=False, debug_image_name='solidWhiteRight.jpg')
+    #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
     #save_frames()
+    test_lane_find('frames', 'frames_output', mode=1, show_image=False, debug_image_name='frame_0.jpg')
+    
