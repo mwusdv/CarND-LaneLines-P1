@@ -122,8 +122,8 @@ class LaneDetectParam:
         self.yellow_hsv_lb = np.array([15, 100, 200])
         self.yellow_hsv_ub = np.array([40, 255, 255])
         
-        self.white_rgb_threshold = np.array([200, 200, 200])
-        self.white_hsv_lb = np.array([0, 0, 200])
+        self.white_rgb_threshold = np.array([90, 90, 90])
+        self.white_hsv_lb = np.array([0, 0, 150])
         self.white_hsv_ub = np.array([255, 255, 255])
         
         # for interest region
@@ -136,7 +136,7 @@ class LaneDetectParam:
         
         # for canny edge detection
         self.canny_low_threshold = 50
-        self.canny_high_threshold = 100
+        self.canny_high_threshold = 150
       
         # for hough tranform
         self.rho = 1
@@ -444,7 +444,10 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
         
         
 if __name__ == '__main__':
-    #test_lane_find('test_images', 'test_images_output', mode=0, show_image=False, debug_image_name='solidWhiteRight.jpg')
-    #save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, debug_mode=False, debug_image_name='frame_4.jpg')
+    debug_mode = False
+    
+    #test_lane_find('test_images', 'test_images_output', mode=1, debug_mode=debug_mode, debug_image_name='solidWhiteRight.jpg')
+    
+    save_frames()
+    test_lane_find('frames', 'frames_output', mode=1, debug_mode=debug_mode, debug_image_name='frame_4.jpg')
     
