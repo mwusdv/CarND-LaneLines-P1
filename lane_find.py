@@ -173,7 +173,7 @@ def detect_yellow(image, param):
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     mask = cv2.inRange(hsv, param.yellow_hsv_lb, param.yellow_hsv_ub)
     
-    return mask > 0
+    return mask
     
 # mask of interest region based on colors
 def get_color_mask(image, param):
@@ -215,10 +215,10 @@ def get_region_mask(image, param):
     vertices = get_interest_region_vertices(image, param)
     
     if len(image.shape) > 2:
-        mask = np.zeros_like(image[:, :, 0])
+        mask = np.zeros_like(image[:, :, 0], dtype=np.uint8)
     else:
-        mask = np.zeros_like(image)
-    mask = cv2.fillPoly(mask, vertices, 1) > 0
+        mask = np.zeros_like(image, dtype=np.uint8)
+    mask = cv2.fillPoly(mask, vertices, 255)
    
     return mask
 
@@ -235,7 +235,7 @@ def get_mask(image, param):
         print('region mask')
         plt.imshow(region_mask)
         plt.show()
-    
+         
         print('mask')
         plt.imshow(mask)
         plt.show()
@@ -363,10 +363,11 @@ def lane_find(image, param, mode):
         print('edge image')
         plt.imshow(edge_image)
         plt.show()
-        
+  
         print('masked edge image')
         plt.imshow(masked_edge_image)
         plt.show()
+        
     # find lane lines
     if mode == 0:
         line_image = hough_lines(masked_edge_image, param)
@@ -397,7 +398,7 @@ def save_frames():
 
 
 # test lane find
-def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_image_name=''):
+def test_lane_find(input_path, output_path, mode=0, debug_mode=False, debug_image_name=''):
     
     # make sure the output path exists
     if not os.path.exists(output_path):
@@ -446,8 +447,8 @@ def test_lane_find(input_path, output_path, mode=1, debug_mode=False, debug_imag
 if __name__ == '__main__':
     debug_mode = False
     
-    #test_lane_find('test_images', 'test_images_output', mode=1, debug_mode=debug_mode, debug_image_name='solidWhiteRight.jpg')
+    test_lane_find('test_images', 'test_images_output', mode=0, debug_mode=debug_mode, debug_image_name='solidYellowLeft.jpg')
     
-    save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, debug_mode=debug_mode, debug_image_name='frame_9.jpg')
+    #save_frames()
+    #test_lane_find('frames', 'frames_output', mode=1, debug_mode=debug_mode, debug_image_name='frame_9.jpg')
     
