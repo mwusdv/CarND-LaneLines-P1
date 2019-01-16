@@ -119,7 +119,7 @@ class LaneDetectParam:
         self.debug_mode = False
         
         # for color detection
-        self.yellow_hsv_lb = np.array([15, 100, 200])
+        self.yellow_hsv_lb = np.array([15, 100, 180])
         self.yellow_hsv_ub = np.array([40, 255, 255])
         
         self.white_rgb_threshold = np.array([90, 90, 90])
