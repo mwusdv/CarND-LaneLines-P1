@@ -374,7 +374,7 @@ def lane_find(image, param, mode):
     else:
         line_image = hough_full_lines(masked_edge_image, param)
         if line_image is None:
-            edge_from_mask = canny(mask*255, param.canny_low_threshold, param.canny_high_threshold)
+            edge_from_mask = canny(mask, param.canny_low_threshold, param.canny_high_threshold)
             if param.debug_mode:
                 print('edge from mask')
                 plt.imshow(edge_from_mask)
