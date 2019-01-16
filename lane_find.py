@@ -135,14 +135,14 @@ class LaneDetectParam:
         self.kernel_size = 5
         
         # for canny edge detection
-        self.canny_low_threshold = 50
-        self.canny_high_threshold = 150
+        self.canny_low_threshold = 40
+        self.canny_high_threshold = 120
       
         # for hough tranform
         self.rho = 1
         self.theta = np.pi/180
-        self.min_vote = 3
-        self.min_line_len = 3
+        self.min_vote = 10
+        self.min_line_len = 5
         self.max_line_gap = 1
         
         # left and right lane lines
@@ -449,5 +449,5 @@ if __name__ == '__main__':
     #test_lane_find('test_images', 'test_images_output', mode=1, debug_mode=debug_mode, debug_image_name='solidWhiteRight.jpg')
     
     save_frames()
-    test_lane_find('frames', 'frames_output', mode=1, debug_mode=debug_mode, debug_image_name='frame_4.jpg')
+    test_lane_find('frames', 'frames_output', mode=1, debug_mode=debug_mode, debug_image_name='frame_9.jpg')
     
